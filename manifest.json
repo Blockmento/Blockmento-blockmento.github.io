@@ -1,0 +1,28 @@
+{
+  "app":{
+    "background": {
+      "page": "background.html"
+    }
+  },
+
+  "name": "Seminarfach",
+  "short_name": "SF",
+  "start_url": "./",
+  "display": "standalone",
+  "scope": "./",
+  "background_color": "#262626",
+  "description": "SF test Webseite",
+
+  "manifest_version": 2,
+  "version": "0.2.5",
+
+  "icons": [{
+    "src": "./assets/icon/icon192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  },{
+    "src": "./assets/icon/icon.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }]
+}
