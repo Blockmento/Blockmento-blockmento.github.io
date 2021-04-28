@@ -9,6 +9,10 @@ var db;
 var alldata="";
 var all_content=[];
 
+$.ajaxPrefilter( "json script text", function( options ) {
+  options.crossDomain = true;
+});
+
 var open = indexedDB.open("Daten");
 
 open.onupgradeneeded = function() { //erstellen einer neuen Indexed DB fals keine existiert
