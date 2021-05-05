@@ -1,15 +1,18 @@
-// Load HTTP module
 const https = require("https");
+const fs = require('fs');
 var mysql=require("mysql");
 
-const hostname = "192.168.0.133";
-const port = 8000;
-
+const hostname = "seminarfach.blockmento.de";
+const port = 8080;
+const options = {
+    cert: fs.readFileSync("/etc/letsencrypt/live/seminarfach.blockmento.de/cert.pem"),
+    key: fs.readFileSync("/etc/letsencrypt/live/seminarfach.blockmento.de/privkey.pem")
+};
 
 var sql = mysql.createConnection({
     host     : 'localhost',
-    user     : 'root',
-    password : '',
+    user     : 'api',
+    password : 'ajkBVb12cBhD66H0Hfwh',
     database : 'test'
   });
 sql.connect(function(err) {
@@ -19,13 +22,13 @@ console.log("Connected!");
 
 
 // Create HTTP server
-const server = https.createServer((req, res) => {
+const server = https.createServer(options, (req, res) => {
     handleRequest(req, res);
 });
 
 // Prints a log once the server starts listening
 server.listen(port, hostname, () => {
-   console.log(`Server running at http://${hostname}:${port}/`);
+   console.log(`Server running at https://${hostname}:${port}/`);
 })
 
 function handleRequest(req, res) {
@@ -44,7 +47,7 @@ function handleRequest(req, res) {
         }
         res.end(user_id); //sendet user_id an Client
         
-        sql.query(`INSERT INTO \`User\` (\`user_id\`) VALUES ('${user_id}');`);
+        sql.query(`INSERT INTO \`user\` (\`user_id\`) VALUES ('${user_id}');`);
         return;
     }
 
@@ -54,17 +57,17 @@ function handleRequest(req, res) {
             console.error(err);
             res.end("false");
           }).on('data', (chunk) => {
-            body.push(chunk);
+            body += chunk;
           }).on('end', () => {
-            body = Buffer.concat(body).toString().split("&").map(function(e) { //string to 2d array
-                return e.split("=").map(String);
-            });
+            data=JSON.parse(body);
             console.log(body);
             sql.query(`SELECT \`ID\` AS solution FROM \`user\` WHERE MATCH (\`user_id\`) AGAINST ('${body[5][1]}');`, function (err, results) { //fragt die UID an
                 if (err) throw err;
                 UID = results[0].solution;
                 console.log(body);
-                sql.query(`INSERT INTO \`${body[0][1]}\` (\`date\`, \`time\`, \`${body[3][0]}\`, \`state\`, \`user\`) VALUES ('${body[1][1]}', '${body[2][1]}', '${body[3][1]}', ${body[4][1]}, '${UID}'); `); //speichert die Daten
+                sql.query(
+                    `INSERT INTO \`${data.db}\` (\`time\`, \`${(data) => {if (data.db == "network") return "type"; if (data.db == "akku") return "level"}}\`, \`state\`, \`user\`) 
+                    VALUES ('${data.time}', '${data.type}', ${data.state}, '${UID}'); `); //speichert die Daten
             });
             res.end("true");
           });
@@ -94,11 +97,11 @@ function handleRequest(req, res) {
                 console.log(UID);
                 for (let i = 0; i < Network.length; i++) { //speichert in die network Tabelle
                     const element = Network[i];
-                    sql.query(`INSERT INTO \`network\` (\`date\`, \`time\`, \`type\`, \`state\`, \`user\`) VALUES ('${element.date}', '${element.time}', '${element.type}', ${element.state}, '${UID}'); `);
+                    sql.query(`INSERT INTO \`network\` (\`time\`, \`type\`, \`state\`, \`user\`) VALUES ('${element.time}', '${element.type}', ${element.state}, '${UID}'); `);
                 }
                 for (let i = 0; i < Akku.length; i++) { //speichert in die akku Tabelle
                     const element = Akku[i];
-                    sql.query(`INSERT INTO \`akku\` (\`date\`, \`time\`, \`level\`, \`state\`, \`user\`) VALUES ('${element.date}', '${element.time}', '${element.level}', ${element.state}, '${UID}'); `);
+                    sql.query(`INSERT INTO \`akku\` (\`time\`, \`level\`, \`state\`, \`user\`) VALUES ('${element.time}', '${element.level}', ${element.state}, '${UID}'); `);
                 }
             });
             res.end("true");

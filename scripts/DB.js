@@ -1,9 +1,5 @@
-//import("./time.js")
-
 console.log("DB_");
 const server = "https://seminarfach.blockmento.de:8080";
-//const server = "https://192.168.0.133:8000"
-const port = "3000";
 
 var db;
 var alldata="";
@@ -21,13 +17,11 @@ open.onupgradeneeded = function() { //erstellen einer neuen Indexed DB fals kein
   var db = open.result;
   var store = db.createObjectStore("Akku", {autoIncrement:true});
   store.createIndex("by_time", "time");
-  store.createIndex("by_date", "date");
   store.createIndex("by_level", "level"); //curent level of charging in percent
   store.createIndex("by_state", "state"); //charging/discharging
 
   var store = db.createObjectStore("Network", {autoIncrement:true});
   store.createIndex("by_time", "time");
-  store.createIndex("by_date", "date");
   store.createIndex("by_type", "type"); //type of connection to the Internet (e.g. wifi)
   store.createIndex("by_state", "state"); //online/offline
 };
@@ -71,7 +65,6 @@ function newUserID() { //fragt eine neue UserID beim Server an
   return a;
 }
 
-
 function saveAkku(level, state) { //speichert in die Netzwerkdadatenbanken
   console.log("Speichere Akku");
   if (navigator.onLine&&check_alive()) { //wenn der Client online ist, speichere direkt in mySQL
@@ -79,32 +72,33 @@ function saveAkku(level, state) { //speichert in die Netzwerkdadatenbanken
     $.ajax({
       url: `${server}/upload`,
       type: 'POST',
-      data: `db=akku&date=${getTime().Datum}&time=${getTime().Uhrzeit}&level=${level}&state=${state}&user=${getCookie("user_id")}`
-    });
+      data: {"db" : "akku","time" : Date.now(), "type" : level , "state": state, "user" : getCookie("user_id")}
+    })
   }
   else { //wenn der Client offline ist, speichere in IndexDB
     var tx = db.transaction("Akku", "readwrite");
     var store = tx.objectStore("Akku");
-    store.put({date: getTime().Datum, time: getTime().Uhrzeit, level: level , state: state});
+    store.put({time: Date.now(), level: level , state: state});
     document.cookie = `ofline=true; max-age=315360000;`;
   }
-
 }
+
 
 function saveNetwork(type, state) { //speichert in die Netzwerkdadatenbanken
   console.log("Speichere Netzwerk");
+  console.log({"db" : "network","time" : Date.now(), "type" : type , "state": state, "user" : getCookie("user_id")});
   if (navigator.onLine&&check_alive()){ //wenn der Client online ist, speichere direkt in mySQL
     console.log("mysql");
     $.ajax({
       url: `${server}/upload`,
       type: 'POST',
-      data: `db=network&date=${getTime().Datum}&time=${getTime().Uhrzeit}&type=${type}&state=${state}&user=${getCookie("user_id")}`
+      data: {"db" : "network","time" : Date.now(), "type" : type , "state": state, "user" : getCookie("user_id")}
     });
   }
   else { //wenn der Client offline ist, speichere in IndexDB
     var tx = db.transaction("Network", "readwrite");
     var store = tx.objectStore("Network");
-    store.put({date: getTime().Datum, time: getTime().Uhrzeit, type: type , state: state});
+    store.put({time: Date.now(), type: type , state: state});
     document.cookie = `ofline=true; max-age=315360000;`;
   }
 }
