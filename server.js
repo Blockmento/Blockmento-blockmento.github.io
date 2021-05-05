@@ -63,7 +63,7 @@ function handleRequest(req, res) {
             sql.query(`SELECT \`ID\` AS solution FROM \`user\` WHERE MATCH (\`user_id\`) AGAINST ('${body[5][1]}');`, function (err, results) { //fragt die UID an
                 if (err) throw err;
                 UID = results[0].solution;
-                console.log(UID);
+                console.log(body);
                 sql.query(`INSERT INTO \`${body[0][1]}\` (\`date\`, \`time\`, \`${body[3][0]}\`, \`state\`, \`user\`) VALUES ('${body[1][1]}', '${body[2][1]}', '${body[3][1]}', ${body[4][1]}, '${UID}'); `); //speichert die Daten
             });
             res.end("true");

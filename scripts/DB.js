@@ -1,7 +1,7 @@
 //import("./time.js")
 
 console.log("DB_");
-const server = "https://v2202102140391141863.powersrv.de:8000";
+const server = "https://seminarfach.blockmento.de:8080";
 //const server = "https://192.168.0.133:8000"
 const port = "3000";
 
@@ -138,9 +138,9 @@ async function sync() { //wird ausgeführt wenn der Client wieder online geht um
         });
       }, 10);
 
-  },10);
+    },10);
   }
-  
+  else setTimeout(sync(), 1000);  
 }
 
 function getData(table) {
