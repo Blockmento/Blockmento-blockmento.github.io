@@ -68,11 +68,11 @@ function newUserID() { //fragt eine neue UserID beim Server an
 function saveAkku(level, state) { //speichert in die Netzwerkdadatenbanken
   console.log("Speichere Akku");
   if (navigator.onLine&&check_alive()) { //wenn der Client online ist, speichere direkt in mySQL
-    console.log("mysql");
+    //console.log("mysql");
     $.ajax({
       url: `${server}/upload`,
       type: 'POST',
-      data: {"db" : "akku","time" : Date.now(), "type" : level , "state": state, "user" : getCookie("user_id")}
+      data: JSON.stringify({"db" : "akku","time" : Date.now(), "type" : level , "state": state, "user" : getCookie("user_id")})
     })
   }
   else { //wenn der Client offline ist, speichere in IndexDB
@@ -86,13 +86,13 @@ function saveAkku(level, state) { //speichert in die Netzwerkdadatenbanken
 
 function saveNetwork(type, state) { //speichert in die Netzwerkdadatenbanken
   console.log("Speichere Netzwerk");
-  console.log({"db" : "network","time" : Date.now(), "type" : type , "state": state, "user" : getCookie("user_id")});
+  //console.log({"db" : "network","time" : Date.now(), "type" : type , "state": state, "user" : getCookie("user_id")});
   if (navigator.onLine&&check_alive()){ //wenn der Client online ist, speichere direkt in mySQL
-    console.log("mysql");
+    //console.log("mysql");
     $.ajax({
       url: `${server}/upload`,
       type: 'POST',
-      data: {"db" : "network","time" : Date.now(), "type" : type , "state": state, "user" : getCookie("user_id")}
+      data: JSON.stringify({"db" : "network","time" : Date.now(), "type" : type , "state": state, "user" : getCookie("user_id")})
     });
   }
   else { //wenn der Client offline ist, speichere in IndexDB
@@ -103,7 +103,7 @@ function saveNetwork(type, state) { //speichert in die Netzwerkdadatenbanken
   }
 }
 
-async function sync() { //wird ausgeführt wenn der Client wieder online geht um die Daten zu synchronisieren
+function sync() { //wird ausgeführt wenn der Client wieder online geht um die Daten zu synchronisieren
   if (getCookie("ofline")=="true"&&check_alive()) { //Daten werden nur hochgeladen, wenn der Server online ist
     console.log("sync");
     all_content=[]
@@ -115,7 +115,7 @@ async function sync() { //wird ausgeführt wenn der Client wieder online geht um
         alljsonN=JSON.stringify(alldataN);
         alljsonA=JSON.stringify(alldataA);
         alljson=`${alljsonN}|${alljsonA}|${getCookie("user_id")}`;
-        console.log(alljson);
+        //console.log(alljson);
         $.ajax({
           url: `${server}/sync`,
           type: 'POST',
@@ -134,7 +134,7 @@ async function sync() { //wird ausgeführt wenn der Client wieder online geht um
 
     },10);
   }
-  else setTimeout(sync(), 1000);  
+  //else setTimeout(sync(), 1000);  
 }
 
 function getData(table) {
@@ -164,10 +164,9 @@ document.onreadystatechange = function () {
       }, 1000);          
     }
     document.cookie = `user_id=${id}; max-age=315360000;`;
-  }
-  }
+    }
+  } 
+  window.addEventListener('online', sync);  
 }
-
-window.addEventListener('online', sync);
 
 //https://github.com/codeforgeek/Synker/

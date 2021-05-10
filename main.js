@@ -4,22 +4,13 @@ function getCookie(name) { //cookie
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-function ChangeN() {
-    console.log("change");
-    saveNetwork(navigator.connection.type, navigator.onLine);
-  }
-  
-window.addEventListener('online', ChangeN);
+navigator.connection.addEventListener('typechange', saveNetwork(navigator.connection.type, navigator.onLine));
+window.addEventListener('offline', saveNetwork(navigator.connection.type, navigator.onLine));
 
 navigator.getBattery().then(function (battery) { //opens stream to Battery API
-
-  function ChangeB() {
-    console.log("change");
-    saveAkku(battery.level, battery.charging);
-    }
   
-  battery.addEventListener('chargingchange', ChangeB);
-  battery.addEventListener('levelchange', ChangeB);
+  battery.addEventListener('chargingchange', saveAkku(battery.level, battery.charging));
+  battery.addEventListener('levelchange', saveAkku(battery.level, battery.charging));
   
   console.log(battery.level);
   
