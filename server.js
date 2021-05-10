@@ -17,7 +17,7 @@ var sql = mysql.createConnection({
   });
 sql.connect(function(err) {
 if (err) throw err;
-console.log("Connected!");
+console.log("DB Connected!");
 });
 
 
@@ -60,14 +60,14 @@ function handleRequest(req, res) {
             body += chunk;
           }).on('end', () => {
             data=JSON.parse(body);
-            console.log(body);
-            sql.query(`SELECT \`ID\` AS solution FROM \`user\` WHERE MATCH (\`user_id\`) AGAINST ('${body[5][1]}');`, function (err, results) { //fragt die UID an
+            //console.log(body);
+            sql.query(`SELECT \`ID\` AS solution FROM \`user\` WHERE MATCH (\`user_id\`) AGAINST ('${data.user}');`, function (err, results) { //fragt die UID an
                 if (err) throw err;
                 UID = results[0].solution;
-                console.log(body);
+                if (data.db == "network") type = "type";
+                if (data.db == "akku") type = "level";
                 sql.query(
-                    `INSERT INTO \`${data.db}\` (\`time\`, \`${(data) => {if (data.db == "network") return "type"; if (data.db == "akku") return "level"}}\`, \`state\`, \`user\`) 
-                    VALUES ('${data.time}', '${data.type}', ${data.state}, '${UID}'); `); //speichert die Daten
+                    `INSERT INTO \`${data.db}\` (\`time\`, \`${type}\`, \`state\`, \`user\`) VALUES (FROM_UNIXTIME(${data.time*0.001}), '${data.type}', ${data.state}, '${UID}'); `); //speichert die Daten
             });
             res.end("true");
           });
@@ -86,7 +86,7 @@ function handleRequest(req, res) {
             array=body.split("|") //Teilt den string in drei arrays auf
             Network=JSON.parse(array[0]); //konvertiert die Strings in ein JSON Objekte
             Akku=JSON.parse(array[1])
-            console.log((array[2]));
+            //console.log((array[2]));
             sql.query(`SELECT \`ID\` AS solution FROM \`user\` WHERE MATCH (\`user_id\`) AGAINST ('${array[2]}');`, function (err, results) { //fragt die UID an
                 if (err) throw err;
                 if (results.length==0) { //fals die user_id nicht existiert
@@ -97,14 +97,15 @@ function handleRequest(req, res) {
                 console.log(UID);
                 for (let i = 0; i < Network.length; i++) { //speichert in die network Tabelle
                     const element = Network[i];
-                    sql.query(`INSERT INTO \`network\` (\`time\`, \`type\`, \`state\`, \`user\`) VALUES ('${element.time}', '${element.type}', ${element.state}, '${UID}'); `);
+                    sql.query(`INSERT INTO \`network\` (\`time\`, \`type\`, \`state\`, \`user\`) VALUES (FROM_UNIXTIME(${element.time*0.001}), '${element.type}', ${element.state}, '${UID}'); `);
                 }
                 for (let i = 0; i < Akku.length; i++) { //speichert in die akku Tabelle
                     const element = Akku[i];
-                    sql.query(`INSERT INTO \`akku\` (\`time\`, \`level\`, \`state\`, \`user\`) VALUES ('${element.time}', '${element.level}', ${element.state}, '${UID}'); `);
+                    sql.query(`INSERT INTO \`akku\` (\`time\`, \`level\`, \`state\`, \`user\`) VALUES (FROM_UNIXTIME(${element.time*0.001}), '${element.level}', ${element.state}, '${UID}'); `);
                 }
+                success = true;
             });
-            res.end("true");
+            res.end(success);
           });
         return;
     }
