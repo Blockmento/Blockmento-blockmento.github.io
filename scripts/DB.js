@@ -5,6 +5,9 @@ var db;
 var alldata="";
 var all_content=[];
 
+let network_type = navigator.connection.type;
+let network_state = navigator.onLine;
+
 $.ajaxPrefilter( "json script text", function( options ) {
   options.crossDomain = true;
 });
@@ -166,14 +169,20 @@ document.onreadystatechange = function () {
       }
       document.cookie = `user_id=${id}; max-age=315360000;`;
     }
-    window.addEventListener('online', sync);
+    checkChange()
+    /*window.addEventListener('online', sync);
     window.addEventListener('offline', () => {
       saveNetwork(navigator.connection.type, navigator.onLine);
-    });
+    });*/
   }
 }
 
-setInterval(check_alive(), 10000);
+async function check_network() {
+    if (network_type!=navigator.connection.type||network_state!=navigator.onLine) saveNetwork(navigator.connection.type, navigator.onLine);
+    network_type = navigator.connection.type;
+    network_state = navigator.onLine;
+    setTimeout(check_network, 1000);
+}
 //https://github.com/codeforgeek/Synker/
 
 
