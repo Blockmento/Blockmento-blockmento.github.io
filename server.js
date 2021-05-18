@@ -34,6 +34,7 @@ server.listen(port, hostname, () => {
 function handleRequest(req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain',"Access-Control-Allow-Origin": "*"});
     if (req.url == "/ping") {
+        console.log("ping");
         res.end('ping');
         return;
     }
@@ -60,9 +61,9 @@ function handleRequest(req, res) {
             body += chunk;
           }).on('end', () => {
             data=JSON.parse(body);
-            //console.log(body);
+            console.log(body);
             sql.query(`SELECT \`ID\` AS solution FROM \`user\` WHERE MATCH (\`user_id\`) AGAINST ('${data.user}');`, function (err, results) { //fragt die UID an
-                if (err) throw err;
+                if (err) console.error(err);
                 UID = results[0].solution;
                 if (data.db == "network") type = "type";
                 if (data.db == "akku") type = "level";

@@ -104,6 +104,7 @@ function saveNetwork(type, state) { //speichert in die Netzwerkdadatenbanken
 }
 
 function sync() { //wird ausgeführt wenn der Client wieder online geht um die Daten zu synchronisieren
+  saveNetwork(navigator.connection.type, navigator.onLine)
   if (getCookie("ofline")=="true"&&check_alive()) { //Daten werden nur hochgeladen, wenn der Server online ist
     console.log("sync");
     all_content=[]
@@ -134,7 +135,7 @@ function sync() { //wird ausgeführt wenn der Client wieder online geht um die D
 
     },10);
   }
-  //else setTimeout(sync(), 1000);  
+  //else setTimeout(sync(), 1000);
 }
 
 function getData(table) {
@@ -152,21 +153,32 @@ function getData(table) {
   return all_content;
 }
 
-document.onreadystatechange = function () { 
-  if (document.readyState == "complete") { //wenn alles geladen ist, schaue nach, ob dieser Client schon einen Benutzer hat 
-  if (document.cookie.indexOf("user_id=")==-1) {
-    console.log("new User"); //der Client hat keinen Benutzer
-    id=newUserID(); //frage neuen Benutzer an
-    while (id=="undefined") { //fals der Server nicht antwortet, warte 10s und frage erneut an
-      setTimeout(() => {
-        console.log("timeout");
-        id=newUserID();
-      }, 1000);          
+document.onreadystatechange = function () {
+  if (document.readyState == "complete") { //wenn alles geladen ist, schaue nach, ob dieser Client schon einen Benutzer hat
+    if (document.cookie.indexOf("user_id=")==-1) {
+      console.log("new User"); //der Client hat keinen Benutzer
+      id=newUserID(); //frage neuen Benutzer an
+      while (id=="undefined") { //fals der Server nicht antwortet, warte 10s und frage erneut an
+        setTimeout(() => {
+          console.log("timeout");
+          id=newUserID();
+        }, 1000);
+      }
+      document.cookie = `user_id=${id}; max-age=315360000;`;
     }
-    document.cookie = `user_id=${id}; max-age=315360000;`;
-    }
-  } 
-  window.addEventListener('online', sync);  
+    window.addEventListener('online', sync);
+    window.addEventListener('offline', () => {
+      saveNetwork(navigator.connection.type, navigator.onLine);
+    });
+  }
 }
 
+setInterval(check_alive(), 10000);
 //https://github.com/codeforgeek/Synker/
+
+
+function Test() {
+    check_alive();
+    setTimeout(Test, 5000);
+}
+Test()
