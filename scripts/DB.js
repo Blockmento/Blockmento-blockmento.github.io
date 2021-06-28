@@ -1,5 +1,5 @@
 console.log("DB_");
-const server = "https://seminarfach.blockmento.de:8080";
+const server = "https://api.blockmento.de";
 
 var db;
 var alldata="";
@@ -99,6 +99,7 @@ function saveNetwork(type, state) { //speichert in die Netzwerkdadatenbanken
     });
   }
   else { //wenn der Client offline ist, speichere in IndexDB
+    console.log("local");
     var tx = db.transaction("Network", "readwrite");
     var store = tx.objectStore("Network");
     store.put({time: Date.now(), type: type , state: state});
@@ -107,7 +108,8 @@ function saveNetwork(type, state) { //speichert in die Netzwerkdadatenbanken
 }
 
 function sync() { //wird ausgeführt wenn der Client wieder online geht um die Daten zu synchronisieren
-  saveNetwork(navigator.connection.type, navigator.onLine)
+  saveNetwork(navigator.connection.type, navigator.onLine);
+  //document.cookie = `ofline=true; max-age=315360000;`; //dies ist echt nciht schön, aber mir fällt gerade nichts besseres ein
   if (getCookie("ofline")=="true"&&check_alive()) { //Daten werden nur hochgeladen, wenn der Server online ist
     console.log("sync");
     all_content=[]
@@ -115,7 +117,7 @@ function sync() { //wird ausgeführt wenn der Client wieder online geht um die D
     setTimeout(() => { //warte darauf, dass die Daten aus der indexed DB geholt worden sind
       all_content=[];
       alldataA=getData("Akku");
-      setTimeout(() => {
+      setTimeout(() => { //dieser timout ist dumm, aber nötig, weil die Daten noch gesammelt werden können
         alljsonN=JSON.stringify(alldataN);
         alljsonA=JSON.stringify(alldataA);
         alljson=`${alljsonN}|${alljsonA}|${getCookie("user_id")}`;
@@ -169,25 +171,18 @@ document.onreadystatechange = function () {
       }
       document.cookie = `user_id=${id}; max-age=315360000;`;
     }
-    checkChange()
-    /*window.addEventListener('online', sync);
+    //check_network();
+    window.addEventListener('online', sync);
     window.addEventListener('offline', () => {
       saveNetwork(navigator.connection.type, navigator.onLine);
-    });*/
+    });
   }
 }
-
+/*
 async function check_network() {
     if (network_type!=navigator.connection.type||network_state!=navigator.onLine) saveNetwork(navigator.connection.type, navigator.onLine);
     network_type = navigator.connection.type;
     network_state = navigator.onLine;
     setTimeout(check_network, 1000);
-}
+}*/
 //https://github.com/codeforgeek/Synker/
-
-
-function Test() {
-    check_alive();
-    setTimeout(Test, 5000);
-}
-Test()
